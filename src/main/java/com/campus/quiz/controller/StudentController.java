@@ -1,0 +1,17 @@
+package com.campus.quiz.controller;
+
+import com.campus.quiz.model.*;import com.campus.quiz.repo.*;import com.campus.quiz.service.QuizService;
+import org.springframework.http.ResponseEntity;import org.springframework.security.core.Authentication;import org.springframework.stereotype.Controller;import org.springframework.ui.Model;import org.springframework.web.bind.annotation.*;import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.time.LocalDateTime;import java.util.*;
+
+@Controller @RequestMapping("/student")
+public class StudentController {
+ private final QuizService service;private final UserAccountRepository users;private final QuizAttemptRepository attempts;
+ public StudentController(QuizService service,UserAccountRepository users,QuizAttemptRepository attempts){this.service=service;this.users=users;this.attempts=attempts;}
+ @GetMapping public String dashboard(Authentication auth,Model model){UserAccount student=users.findByUsername(auth.getName()).orElseThrow();List<Quiz> quizzes=service.allQuizzes();Map<Long,QuizAttempt> attemptMap=new HashMap<>();for(Quiz quiz:quizzes){QuizAttempt a=service.attemptFor(quiz,auth.getName());if(a!=null)attemptMap.put(quiz.getId(),a);}model.addAttribute("student",student);model.addAttribute("subjects",Subject.values());model.addAttribute("quizzes",quizzes);model.addAttribute("attemptMap",attemptMap);model.addAttribute("history",service.studentHistory(auth.getName()));model.addAttribute("now",LocalDateTime.now());return "student/dashboard";}
+ @PostMapping("/quiz/{id}/start") public String start(@PathVariable Long id,Authentication auth,RedirectAttributes ra){try{QuizAttempt a=service.start(id,auth.getName());return "redirect:/student/attempt/"+a.getId();}catch(Exception e){ra.addFlashAttribute("error",e.getMessage());return "redirect:/student";}}
+ @GetMapping("/attempt/{id}") public String attempt(@PathVariable Long id,Authentication auth,Model model,RedirectAttributes ra){try{QuizAttempt a=service.ownedAttempt(id,auth.getName());if(a.isSubmitted())return "redirect:/student/result/"+id;if(!LocalDateTime.now().isBefore(a.getEndsAt())){service.submit(id,auth.getName());return "redirect:/student/result/"+id;}model.addAttribute("attempt",a);model.addAttribute("now",LocalDateTime.now());return "student/attempt";}catch(Exception e){ra.addFlashAttribute("error",e.getMessage());return "redirect:/student";}}
+ @PostMapping("/attempt/{id}/answer") @ResponseBody public ResponseEntity<Void> saveAnswer(@PathVariable Long id,@RequestParam int questionIndex,@RequestParam int selectedOption,Authentication auth){try{service.saveAnswer(id,auth.getName(),questionIndex,selectedOption);return ResponseEntity.noContent().build();}catch(Exception e){return ResponseEntity.badRequest().build();}}
+ @PostMapping("/attempt/{id}/submit") public String submit(@PathVariable Long id,Authentication auth){service.submit(id,auth.getName());return "redirect:/student/result/"+id;}
+ @GetMapping("/result/{id}") public String result(@PathVariable Long id,Authentication auth,Model model,RedirectAttributes ra){try{QuizAttempt a=service.ownedAttempt(id,auth.getName());if(!a.isSubmitted())return "redirect:/student/attempt/"+id;model.addAttribute("attempt",a);model.addAttribute("showScore",a.getQuiz().isResultsVisible());return "student/result";}catch(Exception e){ra.addFlashAttribute("error",e.getMessage());return "redirect:/student";}}
+}

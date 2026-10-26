@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<header th:fragment="nav" class="topbar">
+  <a class="brand" th:href="@{/}"><span class="brand-mark">Q</span><span>Cloud<span class="brand-light">Quiz</span><small>ASSESSMENT SPACE</small></span></a>
+  <div class="nav-right"><span class="cloud-pill"><i></i><span th:text="${cloudMode ? 'SUPABASE CLOUD' : 'LOCAL H2'}">LOCAL H2</span></span><a class="logout" th:href="@{/teacher/password}" sec:authorize="hasRole('TEACHER')">Change password</a><span class="nav-user" sec:authorize="isAuthenticated()"><span class="avatar" th:text="${#authentication.name.substring(0,1).toUpperCase()}">M</span><span th:text="${#authentication.name}">user</span></span><form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()"><button class="logout" type="submit">Sign out ↗</button></form></div>
+</header>
+<footer th:fragment="foot" class="footer"><span>CloudQuiz · Learn, practice, grow.</span><span>Campus assessment portal</span></footer>
+</body>
+</html>
