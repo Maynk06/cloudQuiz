@@ -3,3 +3,8 @@
 <main class="login-card"><div class="eyebrow">CAMPUS LEARNING PORTAL</div><h1>Good to see you.</h1><p class="muted">Sign in to continue to your assessment space.</p>
 <div class="alert error" th:if="${param.error}">Username or password is incorrect. Try again.</div><div class="alert success" th:if="${param.logout}">You have signed out successfully.</div><div class="alert success" th:if="${param.registered}">Student account created. Sign in to continue.</div>
 <form th:action="@{/login}" method="post" class="stack"><label>Username<input type="text" name="username" placeholder="Enter your username" autocomplete="username" required autofocus></label><label>Password<input type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required></label><button class="btn primary full" type="submit">Sign in <span>→</span></button></form>
+<div style="margin-top:22px;text-align:center;padding:14px;border:1px solid #6658dc;border-radius:12px">
+  <span style="color:#c8c4d8">New student?</span>
+  <a style="color:#8d82ff;font-weight:700;margin-left:6px"
+     th:href="@{/register}">Create your student account</a>
+</div>
